@@ -1,0 +1,4 @@
+{
+    "mockUrl":"http://192.168.1.109:8000/mock",
+    "loaclUrl":"http://127.0.0.1:8000/mock"
+}
