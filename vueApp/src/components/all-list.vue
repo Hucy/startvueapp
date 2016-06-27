@@ -2,7 +2,7 @@
     <div class="alllist gamelist">
         <ul>
             <li v-for="item in allList">
-                <a v-link="{ name: 'gameinfo', params: { gameid: item.gameid},query:{joinstate:item.ifjoin}}">
+                <a v-link="{ name: 'gameinfo', params: { gameid: item.gameid},query:{joinstate:item.ifjoin,title:item.name}}">
                 <div class="topinfo">
                     <div class="detail">
                         <p class="name">
@@ -121,7 +121,7 @@ export default {
     return {
         allList:[
             {
-                    "name": "xxgame",
+                    "name": "同花顺第一届民间高手炒股大赛",
                     "gametime": "22",
                     "ganmerNum": "22",
                     "gameState": "starting",
@@ -129,7 +129,7 @@ export default {
                     "ifjoin":true,
                     "rank":"2"
                 }, {
-                    "name": "xxgame",
+                    "name": "同花顺第一届民间高手炒股大赛",
                     "gametime": "22",
                     "ganmerNum": "22",
                     "gameState": "starting",
