@@ -2,23 +2,30 @@
     <div class="mylist gamelist">
             <div class="userinfo">
                 <div class="userpic">
-                    <img :src='userpic' alt="" />
+                    <img src='../../static/img/userpic.png' alt="" />
                 </div>
 
                 <p class="info">
-                    <span>{{username}}</span>
-                    <span>lianxiqu&gt;&gt;</span>
+                    <span>{{user}}</span>
+
+                    <span v-link="{ name: 'gogame', params: { gameid:item.matchid },query:{matchid:item.matchid,title:item.matchname,userid:item.userid}}" v-for='item in lxq'>{{item.matchname}}&gt;&gt;</span>
                 </p>
             </div>
             <p class="joinllistname">
-                my join game list
+                我参加的比赛
             </p>
             <ul>
-                <li v-for='item in myGameList'>
-                    <p>
-                        <span>{{item.gamename}}</span>
-                        <span>{{item.gameState}}</span>
-                    </p>
+                <li v-for='item in my'>
+                    <div>
+                        <a v-link="{ name: 'gogame', params: { gameid:item.matchid },query:{matchid:item.matchid,title:item.matchname,userid:item.userid}}" v-if='item.status!="7"&&item.status!="8"'>
+                        <span>{{item.matchname}}</span>
+                        <span>{{item.status | statusto | arrtoone 1}}</span>
+                        </a>
+                        <p v-else>
+                        <span>{{item.matchname}}</span>
+                        <span>{{item.status | statusto | arrtoone 1}}</span> 
+                        </p>
+                    </div>
                 </li>
             </ul>
     </div>
@@ -26,29 +33,20 @@
 
 <script>
 export default {
+    props:{
+        user:String,
+        my:Array,
+        lxq:Array
+    },
   data: function () {
     return {
-        userpic:'/static/img/userpic.png',
-        username:'xxx',
-        myGameList:[
-            {
-                gamename:"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-                gameState:'over'
-            },
-            {
-                gamename:"xxx",
-                gameState:'over'
-            },
-            {
-                gamename:"xxx",
-                gameState:'over'
-            }
-
-        ]
+        
     }
   },
   computed: {},
-  ready: function () {},
+  ready: function () {
+    
+  },
   attached: function () {},
   methods: {},
   components: {}
@@ -58,10 +56,10 @@ export default {
 <style lang="less" scoped>
     .userinfo{
         height: 145/64rem;
-        width: 625/64rem;
-        margin: 0 auto;
+        width: 100%;
+        text-align:center;
         background-color: #fff;
-        text-align: center;
+        
         line-height: 145/64rem;
         .userpic{
             display: inline-block;
@@ -111,8 +109,8 @@ export default {
 
         position: relative;
         span:first-child{
-            font-size: 28/64rem;
-            color: #a6a6a6;
+            font-size: 30/64rem;
+            color: #000;
             height: 60/64rem;
             line-height: 60/64rem;
             width: 285/64rem;
@@ -133,6 +131,13 @@ export default {
             position: absolute;
             font-size: 28/64rem;
             right: 0;
+        }
+        a{
+           span:last-child{
+            color: #d63739;
+            border: 2px solid #d63739;
+            background-color:transparent;
+        }  
         }
     }
 </style>

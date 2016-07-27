@@ -2,37 +2,43 @@
   <div class="gamearea">
     <div class="basicinfo">
       <div class="userpicwrap">
-           <img :src="userpic" alt="" class="userpic">
+           <img src="../../static/img/userpic.png" alt="" class="userpic">
       </div>
 
-      <p class="username">{{username}}</p>
+      <p class="username">{{basicinfo.name}}</p>
       <ul class="info">
         <li >
           <p>资金账号</p>
-          <p>{{account}}</p>
+          <p>{{basicinfo.usrid}}</p>
         </li>
         <li >
-          <a v-link='{name:"rank",params:{gameid: $route.params.gameid}}'>
+          <a v-link='{name:"rank",params:{gameid: $route.params.gameid},query:{user:basicinfo.name,pm:basicinfo.pm,userid:basicinfo.usrid,title:$route.query.title}}'>
           <p  class="rankname">比赛排名</p>
-          <p class="rank">{{rank}}</p>
+          <p class="rank">{{basicinfo.pm}}</p>
           </a>
         </li>
         <li >
           <p>加入时间</p>
-          <p>{{jointime}}</p>
+          <p>{{basicinfo.khrq}}</p>
         </li>
       </ul>
     </div>
   <!-- 数据 -->
     <ul class="datalist">
-      <li v-for='(k,v) in datalist'>{{k}}：{{v}}</li>
-
-      <li><a v-link='{name:"trans",params:{gameid: $route.params.gameid}}' class="gojy">进入交易</a></li>
+      
+      <li>仓    位:{{basicinfo.cw}}</li>
+      <li>选股成功率:{{basicinfo.xgcgl}}</li>
+      <li>总收益:{{basicinfo.zsyl}}</li>
+      <li>月操作次数:{{basicinfo.byczcs}}</li>
+      <li>月收益:{{basicinfo.bysyl}}</li>
+      <li><a @click='handlehybrid' class="gojy">进入交易</a></li>
     </ul>
     <!-- 折线图 -->
     <div class="chartwrap">
       <div id="chart" width="100%" height="7.65625rem">
-
+          <canvas id="chartcanvas">
+            
+          </canvas>
       </div>
       <table>
         <tr>
@@ -41,9 +47,10 @@
           </th>
         </tr>
         <tr v-for='item in tablelist'>
-          <td v-for='v in headerarr'>
-            {{item[$key]}}
-          </td>
+          <td>{{item.ZQMC}}<br>{{item.ZQDM}}</td>
+          <td>{{item.GPSZ}}<br>{{item.FDYK}}</td>
+          <td>{{item.GPSL}}<br>{{item.KYSL}}</td>
+          <td>{{item.GPCB}}<br>{{item.ZJCJ}}</td>
         </tr>
       </table>
     </div>
@@ -51,113 +58,161 @@
 </template>
 
 <script>
-// 引入 ECharts 主模块
-import echarts from 'echarts/lib/echarts'
-// 引入折线图
-import 'echarts/lib/chart/line'
-// 引入提示框和标题组件
-import 'echarts/lib/component/tooltip'
-import 'echarts/lib/component/title'
-import 'echarts/lib/component/legend'
+import Chart from 'chart.js'
 export default {
   data: function () {
     return {
-      userpic:'../../static/img/userpic.png',
-      username:'xxxx',
-      account:'122222',
-      rank:'12',
-      jointime:'20160620',
-      datalist:{
-        "仓    位":'111',
-        "选股成功率":'111',
-        "总收益":'111',
-        "月操作次数":'111',
-        "月收益":'111'
-      },
+      basicinfo:{},
       headerarr:{
-      namecode:  '名称/代码',
+        namecode:  '名称/代码',
         market:"市值/盈亏",
         positions:'持仓/可用',
         cost:'成本/现价'
       },
       tablelist:[
-        {namecode:'111',market:'1111',positions:'11',cost:'1111'},
-        {namecode:'111',market:'1111',positions:'11',cost:'1111'},
-        {namecode:'111',market:'1111',positions:'11',cost:'1111'}
       ],
       chartData:{
-          tooltip: {
-              trigger: 'axis'
-          },
-          legend: {
-              data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
-          },
-          grid: {
-              left: '3%',
-              right: '4%',
-              bottom: '3%',
-              containLabel: true
-          },
-          toolbox: {
-              feature: {
-                  saveAsImage: {}
-              }
-          },
-          xAxis: {
-              type: 'category',
-              boundaryGap: false,
-              data: ['周一','周二','周三','周四','周五','周六','周日']
-          },
-          yAxis: {
-              type: 'value'
-          },
-          series: [
-              {
-                  name:'邮件营销',
-                  type:'line',
-                  stack: '总量',
-                  data:[120, 132, 101, 134, 90, 230, 210]
-              },
-              {
-                  name:'联盟广告',
-                  type:'line',
-                  stack: '总量',
-                  data:[220, 182, 191, 234, 290, 330, 310]
-              },
-              {
-                  name:'视频广告',
-                  type:'line',
-                  stack: '总量',
-                  data:[150, 232, 201, 154, 190, 330, 410]
-              },
-              {
-                  name:'直接访问',
-                  type:'line',
-                  stack: '总量',
-                  data:[320, 332, 301, 334, 390, 330, 320]
-              },
-              {
-                  name:'搜索引擎',
-                  type:'line',
-                  stack: '总量',
-                  data:[820, 932, 901, 934, 1290, 1330, 1320]
-              }
-          ]
+        my:[],
+        date:[],
+        sz:[]
       }
     }
   },
   computed: {},
+  route:{
+    data:function(transition){
+          let thedata={}
+         this.$http.get('/yxt/trade/usermatch?userid='+this.$route.query.userid).then(({data})=>{
+            thedata.basicinfo=data.item
+         return this.$http.get('/yxt/trade/userstock?userid='+this.$route.query.userid)
+         },(res)=>{
+ 
+         }).then((firstdata)=>{
+            // thedata.tablelist=firstdata.data.
+            thedata.tablelist=firstdata.data.item
+            let title =this.$route.query.title? this.$route.query.title:'模拟炒股大赛';
+            // 原生触发 
+function changeTitle(title){ 
+     document.title = title; 
+    var iframe = document.createElement('iframe'); 
+    iframe.style.visibility = 'hidden'; 
+    iframe.style.width = '1px'; 
+    iframe.style.height = '1px'; 
+    iframe.onload = function () { 
+        setTimeout(function () { 
+            document.body.removeChild(iframe); 
+        }, 0);
+    }; 
+    document.body.appendChild(iframe); 
+} 
+  changeTitle(title)
+           transition.next(
+               
+                  thedata
+                
+            )
+ 
+         })
+     }
+  },
   ready: function () {
-    let myChart = echarts.init(this.$el.querySelectorAll('#chart')[0]);
-    myChart.setOption(this.$data.chartData)
+    let ctx = this.$el.querySelectorAll('#chartcanvas')[0];
+    let that=this;
+    
+    /*
+    
+     */
+    function chartstart(){
+       let myChart =new Chart(ctx,{
+      type:'line',
+     data: {
+                labels: that.chartData.date,
+                datasets: [{
+                    label: "TA的收益",
+                    data:that.chartData.my,
+                      lineTension: 0,
+                    fill: false,
+                    borderColor:'#00aeff',
+                    backgroundColor:'#00aeff',
+                    pointBorderColor:'#00aeff',
+                    pointBackgroundColor:'#00aeff',
+                    pointBorderWidth:1
+                }, {
+                    label: "上证指数",
+                    data: that.chartData.sz,
+                      lineTension: 0,
+                      fill: false, 
+                      borderColor:'#fc9918',
+                    backgroundColor:'#fc9918',
+                    pointBorderColor:'#fc9918',
+                    pointBackgroundColor:'#fc9918',
+                    pointBorderWidth:1
+                }]
+            }
+    })
+    }
+   
+
+  this.$http.get('/yxt/trade/sylchart?userid='+this.$route.query.userid).then(({data})=>{
+      
+      this.chartData=data.item
+      chartstart()
+  },(res)=>{
+
+
+  })
+
+
+
+
   },
   attached: function () {},
-  methods: {},
+  methods: {
+    handlehybrid:function(){ 
+        function hybridFun( str, obj, callback ){ 
+    // 页面已经加载完成 
+      console.log(str)
+      console.log(obj)
+    if (window.WebViewJavascriptBridge) { 
+        /* 
+         * @param string 方法名 
+         * @param object 参数 
+         * @param callback 回调 
+         */ 
+         try{ 
+            //alert(1); 
+            //alert(window.WebViewJavascriptBridge); 
+            WebViewJavascriptBridge.callHandler( str, obj, callback ) 
+         } catch(e){ 
+            alert(e); 
+         } 
+    // 还未加载完成 
+    } else { 
+        try{ 
+            document.addEventListener('WebViewJavascriptBridgeReady', function() { 
+                //alert(2); 
+                //alert(WebViewJavascriptBridge); 
+                WebViewJavascriptBridge.callHandler( str, obj, callback ) 
+            }, false) 
+        } catch(e){ 
+            alert(e); 
+        } 
+    } 
+}
+     hybridFun('jumpcc',{id:this.basicinfo.usrid,pwd:this.basicinfo.pwd},function(){})
+    }
+    
+  },
   components: {}
 }
 </script>
 
 <style lang="less" scoped>
+canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
 @basicu:64rem;
 @redtext:#ea8686;
 @blackText:#040000;
@@ -199,6 +254,7 @@ export default {
       }
       .rankname{
         margin: -10/@basicu 0 10/@basicu;
+        color:#fff;
       }
       .rank{
         color: #fff000;
@@ -247,6 +303,10 @@ chartwrap
    background-color:#eeeeee;
    padding:10/@basicu 20/@basicu;
    #chart{
+   
+   }
+   #chartcanvas{
+    width:100%;
     height:490/@basicu;
    }
    table{
@@ -257,6 +317,9 @@ chartwrap
       font-size: 24/64rem;
       color: #060606;
       background-color: #d7d7d7;
+    }
+    td{
+     font-size: 24/64rem; 
     }
    }
 }

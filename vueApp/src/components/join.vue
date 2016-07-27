@@ -1,7 +1,7 @@
 <template lang="html">
   <div class="joinsucess">
     <img src="../../static/img/images/jon_03.png" alt="" />
-    <a v-link='{name:"gogame",params: { gameid: $route.query.gameid}}'>进入比赛</a>
+    <a v-link='{name:"gogame",params: { gameid: $route.query.matchid},query:$route.query}'>进入比赛</a>
   </div>
 </template>
 
